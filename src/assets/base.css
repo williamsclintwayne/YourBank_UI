@@ -19,35 +19,33 @@
   --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
   --vt-c-text-dark-1: var(--vt-c-white);
   --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
+
+  /* --- NEW THEME COLORS --- */
+  --yb-white: #FFFFFF;
+  --yb-light-grey-bg: #F7F9FA;
+  --yb-light-grey-border: #E0E0E0;
+  --yb-mint: #A8E6CF;
+  --yb-deep-teal: #2D7A8A;
+  --yb-warm-peach: #FFD3B6;
+  --yb-charcoal: #333333;
+  --yb-medium-grey: #666666;
+  /* --- END NEW THEME COLORS --- */
 }
 
 /* semantic color variables for this project */
 :root {
-  --color-background: var(--vt-c-white);
-  --color-background-soft: var(--vt-c-white-soft);
-  --color-background-mute: var(--vt-c-white-mute);
+  --color-background: var(--yb-light-grey-bg); /* Use light grey background */
+  --color-background-soft: var(--vt-c-white-soft); /* Keep for potential variations */
+  --color-background-mute: var(--vt-c-white-mute); /* Keep for potential variations */
 
-  --color-border: var(--vt-c-divider-light-2);
-  --color-border-hover: var(--vt-c-divider-light-1);
+  --color-border: var(--yb-light-grey-border); /* Use light grey border */
+  --color-border-hover: var(--vt-c-divider-light-1); /* Keep or adjust if needed */
 
-  --color-heading: var(--vt-c-text-light-1);
-  --color-text: var(--vt-c-text-light-1);
+  --color-heading: var(--yb-deep-teal); /* Use deep teal for headings */
+  --color-text: var(--yb-charcoal); /* Use charcoal for main text */
+  --color-text-secondary: var(--yb-medium-grey); /* Use medium grey for secondary text */
 
   --section-gap: 160px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: var(--vt-c-black);
-    --color-background-soft: var(--vt-c-black-soft);
-    --color-background-mute: var(--vt-c-black-mute);
-
-    --color-border: var(--vt-c-divider-dark-2);
-    --color-border-hover: var(--vt-c-divider-dark-1);
-
-    --color-heading: var(--vt-c-text-dark-1);
-    --color-text: var(--vt-c-text-dark-2);
-  }
 }
 
 *,
@@ -55,7 +53,6 @@
 *::after {
   box-sizing: border-box;
   margin: 0;
-  font-weight: normal;
 }
 
 body {
@@ -66,8 +63,7 @@ body {
     color 0.5s,
     background-color 0.5s;
   line-height: 1.6;
-  font-family:
-    Inter,
+  font-family: 'Inter', /* Use Inter as base */
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
@@ -83,4 +79,10 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Add base styles for headings if needed, or rely on Tailwind */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif; /* Apply Montserrat to headings */
+  color: var(--color-heading);
 }

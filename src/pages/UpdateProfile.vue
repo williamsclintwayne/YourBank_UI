@@ -1,24 +1,28 @@
 <template>
-  <div class="update-profile-container">
-    <h1>Update Profile</h1>
-    <form @submit.prevent="updateProfile">
+  <div class="update-profile-container p-6 md:p-8 bg-light-grey-bg min-h-screen">
+    <h1 class="text-3xl font-bold font-heading text-deep-teal mb-6">Update Profile</h1>
+    <form @submit.prevent="updateProfile" class="card max-w-lg mx-auto space-y-4">
       <div class="form-group">
-        <label for="address">Address</label>
-        <input v-model="profile.address" id="address" type="text" required />
+        <label for="address" class="label">Address</label>
+        <input v-model="profile.address" id="address" type="text" class="input-field" required />
       </div>
       <div class="form-group">
-        <label for="cellphone">Cellphone Number</label>
-        <input v-model="profile.cellphone" id="cellphone" type="text" required />
+        <label for="cellphone" class="label">Cellphone Number</label>
+        <input v-model="profile.cellphone" id="cellphone" type="text" class="input-field" required />
       </div>
       <div class="form-group">
-        <label for="employmentStatus">Employment Status</label>
-        <select v-model="profile.employmentStatus" id="employmentStatus">
+        <label for="employmentStatus" class="label">Employment Status</label>
+        <select v-model="profile.employmentStatus" id="employmentStatus" class="input-field">
+          <option value="" disabled>Select Status</option>
           <option value="Employed">Employed</option>
           <option value="Unemployed">Unemployed</option>
           <option value="Student">Student</option>
         </select>
       </div>
-      <button type="submit" class="btn primary">Save Changes</button>
+      <div class="flex justify-between mt-6">
+          <button type="button" class="btn btn-secondary" @click="goBack">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
     </form>
   </div>
 </template>
@@ -39,25 +43,33 @@ const router = useRouter();
 const fetchProfile = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.get('http://localhost:5000/api/users/profile', {
+    // Use relative URL assuming axios baseURL is set
+    const response = await axios.get('/api/users/profile', {
       headers: { Authorization: `Bearer ${token}` },
     });
+    // Adjust based on actual API response structure
+    const userData = response.data.userId || response.data; // Handle potential nesting
     profile.value = {
-      address: response.data.userId.address || '',
-      cellphone: response.data.userId.cellphone || '',
-      employmentStatus: response.data.userId.employmentStatus || '',
+      address: userData.address || '',
+      cellphone: userData.cellphone || '',
+      employmentStatus: userData.employmentStatus || '',
     };
   } catch (error) {
     console.error('Error fetching profile:', error.message);
     alert('Failed to load profile. Please try again.');
+     // Redirect if unauthorized
+     if (error.response?.status === 401) {
+        router.push('/login');
+     }
   }
 };
 
 const updateProfile = async () => {
   try {
     const token = localStorage.getItem('token');
+    // Use relative URL assuming axios baseURL is set
     await axios.put(
-      '/api/users/profile', // Ensure this matches the backend route
+      '/api/users/profile',
       {
         address: profile.value.address,
         cellphone: profile.value.cellphone,
@@ -73,55 +85,17 @@ const updateProfile = async () => {
   }
 };
 
+const goBack = () => {
+    router.push('/dashboard'); // Navigate back to dashboard on cancel
+}
+
 onMounted(() => {
   fetchProfile();
 });
 </script>
 
 <style scoped>
-.update-profile-container {
-  padding: 2rem;
-  max-width: 600px;
-  margin: 0 auto;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
-}
-
 .form-group {
   margin-bottom: 1rem;
-}
-
-label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-
-input,
-select {
-  width: 100%;
-  padding: 0.8rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
-}
-
-button {
-  margin-top: 1rem;
-  padding: 0.8rem 1.5rem;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #1e40af;
 }
 </style>

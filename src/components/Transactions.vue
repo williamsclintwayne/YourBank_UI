@@ -1,51 +1,51 @@
 <template>
-  <div class="p-8">
-    <div class="flex justify-between items-center">
-      <h1 class="text-3xl font-bold text-blue-600">Transactions</h1>
-      <button class="btn secondary" @click="navigateBack">Back to Dashboard</button>
+  <div class="p-6 md:p-8 bg-light-grey-bg min-h-screen">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+      <h1 class="text-3xl font-bold font-heading text-deep-teal mb-2 md:mb-0">Transactions</h1>
+      <button class="btn btn-secondary" @click="navigateBack">Back to Dashboard</button>
     </div>
-    <p class="mt-4 text-gray-600">
-      Viewing transactions for <span class="font-bold text-blue-600">{{ accountName }}</span>.
+    <p class="mb-8 text-medium-grey">
+      Viewing transactions for <span class="font-semibold text-deep-teal">{{ accountName }}</span>.
     </p>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
-      <!-- Transactions List -->
-      <div class="col-span-2">
-        <h2 class="text-2xl font-semibold text-gray-800">Transaction History</h2>
-        <div v-if="transactions.length" class="mt-4">
-          <table class="w-full border-collapse border border-gray-300">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2 card">
+        <h2 class="text-2xl font-semibold font-heading text-deep-teal mb-4">Transaction History</h2>
+        <div v-if="transactions.length" class="overflow-x-auto">
+          <table class="w-full border-collapse">
             <thead>
               <tr class="bg-gray-100">
-                <th class="border border-gray-300 p-2">Date</th>
-                <th class="border border-gray-300 p-2">Description</th>
-                <th class="border border-gray-300 p-2">Amount</th>
+                <th class="border-b border-light-grey-border p-3 text-left text-sm font-semibold text-medium-grey uppercase">Date</th>
+                <th class="border-b border-light-grey-border p-3 text-left text-sm font-semibold text-medium-grey uppercase">Description</th>
+                <th class="border-b border-light-grey-border p-3 text-right text-sm font-semibold text-medium-grey uppercase">Amount</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="transaction in transactions" :key="transaction._id">
-                <td class="border border-gray-300 p-2">{{ new Date(transaction.date).toLocaleString() }}</td>
-                <td class="border border-gray-300 p-2">{{ transaction.reference }}</td>
-                <td class="border border-gray-300 p-2">{{ transaction.amount < 0 ? '-' : '+' }}R {{ Math.abs(transaction.amount) }}</td>
+              <tr v-for="transaction in transactions" :key="transaction._id" class="hover:bg-gray-50">
+                <td class="border-b border-light-grey-border p-3 text-sm text-charcoal">{{ new Date(transaction.date).toLocaleString() }}</td>
+                <td class="border-b border-light-grey-border p-3 text-sm text-charcoal">{{ transaction.reference }}</td>
+                <td :class="['border-b border-light-grey-border p-3 text-sm text-right font-medium', transaction.amount < 0 ? 'text-red-600' : 'text-green-600']">
+                    {{ transaction.amount < 0 ? '-' : '+' }}R {{ Math.abs(transaction.amount).toFixed(2) }}
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
         <div v-else class="mt-4">
-          <p class="text-gray-600">No transactions found for this account.</p>
+          <p class="text-medium-grey">No transactions found for this account.</p>
         </div>
       </div>
 
-      <!-- Account Summary -->
-      <div class="p-6 bg-white rounded-lg shadow-md">
-        <h2 class="text-2xl font-semibold text-gray-800">Account Summary</h2>
-        <div class="mt-4">
-          <p class="text-gray-600">Account Name: <span class="font-bold text-blue-600">{{ accountName }}</span></p>
-          <p class="text-gray-600 mt-2">Account Number: <span class="font-bold text-blue-600">{{ accountNumber }}</span></p>
-          <p class="text-gray-600 mt-2">Balance: <span class="font-bold text-blue-600">R {{ balance }}</span></p>
+      <div class="card h-fit">
+        <h2 class="text-2xl font-semibold font-heading text-deep-teal mb-4">Account Summary</h2>
+        <div class="space-y-2">
+          <p class="text-medium-grey">Account Name: <span class="font-semibold text-deep-teal">{{ accountName }}</span></p>
+          <p class="text-medium-grey">Account Number: <span class="font-semibold text-deep-teal">{{ accountNumber }}</span></p>
+          <p class="text-medium-grey">Balance: <span class="font-semibold text-deep-teal">R {{ balance.toFixed(2) }}</span></p>
         </div>
-        <div class="mt-8">
-          <button class="btn primary w-full mb-4" @click="printBankStatement">Print Bank Statement</button>
-          <button class="btn secondary w-full" @click="emailBankStatement">Email Bank Statement</button>
+        <div class="mt-8 space-y-3">
+          <button class="btn btn-primary w-full" @click="printBankStatement">Print Statement</button>
+          <button class="btn btn-secondary w-full" @click="emailBankStatement">Email Statement</button>
         </div>
       </div>
     </div>
@@ -59,7 +59,7 @@ import axios from 'axios';
 
 const transactions = ref([]);
 const accountName = ref('');
-const accountNumber = ref(''); // Track the account number
+const accountNumber = ref('');
 const balance = ref(0);
 
 const router = useRouter();
@@ -69,12 +69,12 @@ const fetchTransactions = async () => {
   try {
     const token = localStorage.getItem('token');
     const accountId = route.params.accountId;
-    const response = await axios.get(`http://localhost:5000/api/accounts/${accountId}/transactions`, {
+    const response = await axios.get(`/api/accounts/${accountId}/transactions`, { // Relative URL
       headers: { Authorization: `Bearer ${token}` },
     });
     transactions.value = response.data.transactions || [];
     accountName.value = response.data.accountName;
-    accountNumber.value = response.data.accountNumber; // Set the account number
+    accountNumber.value = response.data.accountNumber;
     balance.value = response.data.balance;
   } catch (error) {
     console.error('Error fetching transactions:', error.response?.data?.message || error.message);
@@ -87,17 +87,18 @@ const printBankStatement = async () => {
     const token = localStorage.getItem('token');
     const accountId = route.params.accountId;
     const response = await axios.get(
-      `http://localhost:5000/api/accounts/${accountId}/statement/pdf`,
+      `/api/accounts/${accountId}/statement/pdf`, // Relative URL
       { headers: { Authorization: `Bearer ${token}` }, responseType: 'blob' }
     );
 
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' })); // Specify MIME type
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'BankStatement.pdf');
+    link.setAttribute('download', `BankStatement_${accountNumber.value}.pdf`); // Dynamic filename
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    window.URL.revokeObjectURL(url); // Clean up blob URL
   } catch (error) {
     console.error('Error generating bank statement PDF:', error.response?.data?.message || error.message);
     alert(`Error generating bank statement PDF: ${error.response?.data?.message || error.message}`);
@@ -109,7 +110,7 @@ const emailBankStatement = async () => {
     const token = localStorage.getItem('token');
     const accountId = route.params.accountId;
     await axios.post(
-      `http://localhost:5000/api/accounts/${accountId}/statement/email`,
+      `/api/accounts/${accountId}/statement/email`, // Relative URL
       {},
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -121,8 +122,9 @@ const emailBankStatement = async () => {
 };
 
 const navigateBack = () => {
-  router.push('/dashboard'); // Navigate back to the dashboard
+  router.push('/dashboard');
 };
+
 
 onMounted(() => {
   fetchTransactions();
@@ -130,35 +132,4 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.btn.primary {
-  background: #6366f1;
-  color: white;
-  padding: 0.8rem 2rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.btn.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.btn.secondary {
-  background: transparent;
-  border: 2px solid #6366f1;
-  color: #6366f1;
-  padding: 0.8rem 2rem;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.btn.secondary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
 </style>

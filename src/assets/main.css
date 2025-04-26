@@ -1,18 +1,17 @@
 @import './base.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 #app {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 1rem; /* Add padding for smaller screens */
+  padding: 2rem; /* Consistent padding */
   font-weight: normal;
 }
 
-@media (min-width: 640px) {
-  #app {
-    padding: 2rem; /* Increase padding for medium screens */
-  }
-}
-
+/* Remove media query overrides for #app layout if a full-width layout is preferred */
+/*
 @media (min-width: 1024px) {
   body {
     display: flex;
@@ -22,6 +21,32 @@
   #app {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    padding: 3rem; /* Further increase padding for larger screens */
+    padding: 0 2rem;
+  }
+}
+*/
+
+/* Define reusable button styles using @layer components */
+@layer components {
+  .btn {
+    @apply font-heading font-semibold py-2 px-5 rounded-sm transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  .btn-primary {
+    @apply bg-mint text-charcoal hover:bg-opacity-80 focus:ring-mint;
+  }
+  .btn-secondary {
+    @apply bg-transparent border border-deep-teal text-deep-teal hover:bg-deep-teal hover:text-white focus:ring-deep-teal;
+  }
+  .btn-danger { /* Optional: For logout/destructive actions */
+     @apply bg-warm-peach text-charcoal hover:bg-opacity-80 focus:ring-warm-peach;
+  }
+  .input-field {
+      @apply w-full px-4 py-2 border border-light-grey-border rounded-sm bg-white focus:outline-none focus:ring-1 focus:ring-mint focus:border-mint text-charcoal;
+  }
+  .label {
+      @apply block text-medium-grey font-medium mb-1;
+  }
+  .card {
+      @apply bg-white p-6 rounded-lg border border-light-grey-border shadow-sm; /* Subtle shadow */
   }
 }
