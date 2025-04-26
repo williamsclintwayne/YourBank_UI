@@ -1,0 +1,27 @@
+@import './base.css';
+
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem; /* Add padding for smaller screens */
+  font-weight: normal;
+}
+
+@media (min-width: 640px) {
+  #app {
+    padding: 2rem; /* Increase padding for medium screens */
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    display: flex;
+    place-items: center;
+  }
+
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 3rem; /* Further increase padding for larger screens */
+  }
+}
