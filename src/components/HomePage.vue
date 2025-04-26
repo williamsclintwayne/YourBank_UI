@@ -5,9 +5,10 @@
       <p class="mt-4 text-medium-grey text-lg max-w-2xl mx-auto">
         Modern banking designed for clarity and ease. Manage your accounts, make payments, and track transactions effortlessly.
       </p>
-      <div class="mt-8 flex justify-center gap-4">
+      <div class="mt-8 flex flex-wrap justify-center gap-4">
         <button class="btn btn-primary" @click="navigateToGetStarted">Get Started</button>
         <button class="btn btn-secondary" @click="navigateToLogin">Login</button>
+        <button class="btn btn-secondary" @click="navigateToLearnMore">Learn More</button> <!-- Added Learn More button -->
       </div>
     </div>
 
@@ -53,6 +54,11 @@ const navigateToGetStarted = () => {
 
 const navigateToLogin = () => {
   router.push('/login');
+};
+
+// Added function to navigate to Learn More page
+const navigateToLearnMore = () => {
+  router.push('/learn-more');
 };
 </script>
 
