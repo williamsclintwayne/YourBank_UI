@@ -4,10 +4,10 @@ import Payments from '../components/Payments.vue';
 import Transactions from '../components/Transactions.vue';
 import LoginPage from '../components/LoginPage.vue';
 import HomePage from '../components/HomePage.vue';
-import GetStartedPage from '../components/GetStartedPage.vue';
-import UpdateProfile from '../pages/UpdateProfile.vue';
-import OpenAccountPage from '../components/OpenAccountPage.vue'; // Import OpenAccountPage
-import LearnMorePage from '../components/LearnMorePage.vue'; // Import LearnMorePage
+import GetStartedPage from '../pages/GetStartedPage.vue'; // Updated path
+import UpdateProfile from '../pages/UpdateProfile.vue'; // Path is correct, but good to verify
+import OpenAccountPage from '../components/OpenAccountPage.vue';
+import LearnMorePage from '../components/LearnMorePage.vue';
 
 const routes = [
   {
@@ -42,12 +42,12 @@ const routes = [
   {
     path: '/get-started',
     name: 'GetStarted',
-    component: GetStartedPage,
+    component: GetStartedPage, // No change needed here, just the import path
   },
   {
     path: '/update-profile',
-    name: 'UpdateProfile', // Add name for consistency
-    component: UpdateProfile,
+    name: 'UpdateProfile',
+    component: UpdateProfile, // No change needed here, just the import path
      meta: { requiresAuth: true }
    },
    {
