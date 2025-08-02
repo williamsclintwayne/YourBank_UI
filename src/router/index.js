@@ -8,6 +8,7 @@ import GetStartedPage from '../pages/GetStartedPage.vue'; // Updated path
 import UpdateProfile from '../pages/UpdateProfile.vue'; // Path is correct, but good to verify
 import OpenAccountPage from '../components/OpenAccountPage.vue';
 import LearnMorePage from '../components/LearnMorePage.vue';
+import ViewProfile from '../pages/ViewProfile.vue'; // Path is correct, but good to verify
 
 const routes = [
   {
@@ -61,6 +62,12 @@ const routes = [
     name: 'LearnMore',
     component: LearnMorePage,
   },
+  {
+    path: '/view-profile',
+    name: 'ViewProfile',
+    component: ViewProfile, // No change needed here, just the import path
+     meta: { requiresAuth: true }
+   },
 ];
 
 const router = createRouter({

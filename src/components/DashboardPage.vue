@@ -170,6 +170,10 @@ const navigateToProfileUpdate = () => {
   router.push('/update-profile'); // Navigate to the Update Profile page
 };
 
+const navigateToProfile = () => {
+  router.push('/view-profile'); // Navigate to the Profile page
+};
+
 const handleNavigation = (action) => {
   if (action === 'logout') {
     logout();
@@ -179,6 +183,8 @@ const handleNavigation = (action) => {
     navigateToPayments();
   } else if (action === 'updateProfile') {
     navigateToProfileUpdate();
+  } else if (action === 'viewProfile') {
+    navigateToProfile();
   }
 };
 

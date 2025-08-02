@@ -43,33 +43,28 @@ const router = useRouter();
 const fetchProfile = async () => {
   try {
     const token = localStorage.getItem('token');
-    // Use relative URL assuming axios baseURL is set
-    const response = await axios.get('/api/users/profile', {
+    const response = await axios.get('/api/profile', {
       headers: { Authorization: `Bearer ${token}` },
     });
-    // Adjust based on actual API response structure
-    const userData = response.data.userId || response.data; // Handle potential nesting
     profile.value = {
-      address: userData.address || '',
-      cellphone: userData.cellphone || '',
-      employmentStatus: userData.employmentStatus || '',
+      address: response.data.address || '',
+      cellphone: response.data.cellphone || '',
+      employmentStatus: response.data.employmentStatus || '',
     };
   } catch (error) {
     console.error('Error fetching profile:', error.message);
     alert('Failed to load profile. Please try again.');
-     // Redirect if unauthorized
-     if (error.response?.status === 401) {
-        router.push('/login');
-     }
+    if (error.response?.status === 401) {
+      router.push('/login');
+    }
   }
 };
 
 const updateProfile = async () => {
   try {
     const token = localStorage.getItem('token');
-    // Use relative URL assuming axios baseURL is set
     await axios.put(
-      '/api/users/profile',
+      '/api/profile',
       {
         address: profile.value.address,
         cellphone: profile.value.cellphone,
@@ -78,7 +73,7 @@ const updateProfile = async () => {
       { headers: { Authorization: `Bearer ${token}` } }
     );
     alert('Profile updated successfully!');
-    router.push('/dashboard'); // Redirect to the dashboard
+    router.push('/dashboard');
   } catch (error) {
     console.error('Error updating profile:', error.message);
     alert(`Error updating profile: ${error.response?.data?.message || error.message}`);
