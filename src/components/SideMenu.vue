@@ -5,8 +5,10 @@
       <ul class="space-y-3">
         <li><button class="btn btn-primary w-full text-left" @click="$emit('navigate', 'openAccount')">Open New Account</button></li>
         <li><button class="btn btn-primary w-full text-left" @click="$emit('navigate', 'paySomeone')">Pay Someone</button></li>
+        <li><button class="btn btn-primary w-full text-left" @click="$emit('navigate', 'transactionHistory')">Transaction History</button></li>
         <li><button class="btn btn-primary w-full text-left" @click="$emit('navigate', 'updateProfile')">Update Profile</button></li>
         <li><button class="btn btn-primary w-full text-left" @click="$emit('navigate', 'viewProfile')">View Profile</button></li>
+        <li><button class="btn btn-primary w-full text-left" @click="$emit('navigate', 'notificationSettings')">Notification Settings</button></li>
       </ul>
       <button class="btn btn-danger w-full mt-auto" @click="$emit('navigate', 'logout')">Logout</button>
     </div>

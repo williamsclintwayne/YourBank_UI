@@ -55,8 +55,11 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useToast } from 'vue-toastification';
 import axios from 'axios';
+import NotificationService from '../services/notificationService';
 
+const toast = useToast();
 const transactions = ref([]);
 const accountName = ref('');
 const accountNumber = ref('');
@@ -109,15 +112,16 @@ const emailBankStatement = async () => {
   try {
     const token = localStorage.getItem('token');
     const accountId = route.params.accountId;
-    await axios.post(
-      `/api/accounts/${accountId}/statement/email`, // Relative URL
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    alert('Bank statement emailed successfully.');
+    
+    // Use the notification service for better error handling
+    await NotificationService.emailBankStatement(accountId, 'current_month');
+    
+    // Show success toast
+    toast.success('Bank statement emailed successfully!');
   } catch (error) {
-    console.error('Error emailing bank statement:', error.response?.data?.message || error.message);
-    alert(`Error emailing bank statement: ${error.response?.data?.message || error.message}`);
+    console.error('Error emailing bank statement:', error);
+    const message = error.message || 'Failed to email bank statement';
+    toast.error(`Error: ${message}`);
   }
 };
 

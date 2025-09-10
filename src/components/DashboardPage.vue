@@ -2,7 +2,16 @@
   <div class="dashboard-container p-6 md:p-8">
     <header class="dashboard-header">
       <h1 class="dashboard-title">Dashboard</h1>
-      <button class="burger-button" @click="toggleMenu">☰</button>
+      <div class="header-actions">
+        <div class="relative">
+          <NotificationBell @notification-click="toggleNotifications" />
+          <NotificationList 
+            :is-open="showNotifications"
+            @close="toggleNotifications"
+          />
+        </div>
+        <button class="burger-button" @click="toggleMenu">☰</button>
+      </div>
     </header>
     <p class="dashboard-welcome">
       Welcome back <span class="highlight">{{ userName }}</span>!
@@ -68,10 +77,13 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import SideMenu from './SideMenu.vue';
+import NotificationBell from './notifications/NotificationBell.vue';
+import NotificationList from './notifications/NotificationList.vue';
 
 const accounts = ref([]);
 const showModal = ref(false);
 const isMenuOpen = ref(false);
+const showNotifications = ref(false);
 const accountForm = ref({
   name: '',
   accountType: 'Savings',
@@ -166,12 +178,20 @@ const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
 };
 
+const toggleNotifications = () => {
+  showNotifications.value = !showNotifications.value;
+};
+
 const navigateToProfileUpdate = () => {
   router.push('/update-profile'); // Navigate to the Update Profile page
 };
 
 const navigateToProfile = () => {
   router.push('/view-profile'); // Navigate to the Profile page
+};
+
+const navigateToNotificationSettings = () => {
+  router.push('/notification-settings'); // Navigate to the Notification Settings page
 };
 
 const handleNavigation = (action) => {
@@ -181,10 +201,14 @@ const handleNavigation = (action) => {
     showModal.value = true;
   } else if (action === 'paySomeone') {
     navigateToPayments();
+  } else if (action === 'transactionHistory') {
+    router.push('/transaction-history');
   } else if (action === 'updateProfile') {
     navigateToProfileUpdate();
   } else if (action === 'viewProfile') {
     navigateToProfile();
+  } else if (action === 'notificationSettings') {
+    navigateToNotificationSettings();
   }
 };
 
@@ -209,12 +233,18 @@ onMounted(() => {
   position: relative;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .dashboard-title {
   @apply text-3xl md:text-4xl font-heading font-bold text-deep-teal;
 }
 
 .burger-button {
-  @apply text-2xl text-deep-teal bg-transparent border-none cursor-pointer absolute top-0 right-0 p-2 transition-transform duration-200 hover:scale-110;
+  @apply text-2xl text-deep-teal bg-transparent border-none cursor-pointer p-2 transition-transform duration-200 hover:scale-110;
 }
 
 .dashboard-welcome {
