@@ -217,15 +217,15 @@ const fetchProfile = async () => {
     // Fetch user basic info
     const userRes = await axios.get('/api/users/profile', authHeader);
     const user = userRes.data.userId || userRes.data || {};
-    name.value = user.name || '';
-    email.value = user.email || '';
+    name.value = user.profile.userId.name || '';
+    email.value = user.profile.userId.email || '';
 
     // Fetch profile details
-    const profileRes = await axios.get('/api/profile', authHeader);
+    const profileRes = await axios.get(`/api/users/${user.profile.userId._id}/profile`, authHeader);
     profile.value = {
-      address: profileRes.data.address || user.address || '',
-      cellphone: profileRes.data.cellphone || user.cellphone || '',
-      employmentStatus: profileRes.data.employmentStatus || user.employmentStatus || '',
+      address: profileRes.profile.address || user.profile.userId.address || '',
+      cellphone: profileRes.profile.cellphone || user.profile.userId.cellphone || '',
+      employmentStatus: profileRes.profile.employmentStatus || user.profile.userId.employmentStatus || '',
     };
   } catch (error) {
     console.error('Error fetching profile:', error.response?.data?.message || error.message);

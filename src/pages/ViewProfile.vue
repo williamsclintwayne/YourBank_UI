@@ -205,23 +205,23 @@ const fetchProfile = async () => {
     });
     // The API sometimes nests under .userId
     const user = userRes.data?.userId || userRes.data || {};
-    userName.value = user.name || '';
-    userEmail.value = user.email || '';
+    userName.value = user.profile.userId.name || '';
+    userEmail.value = user.profile.userId.email || '';
 
     // Extended profile
-    const profileRes = await axios.get('/api/profile', {
+    const profileRes = await axios.get(`/api/users/${user.profile.userId._id}/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const p = profileRes.data || {};
     profile.value = {
-      idNumber: p.idNumber || '',
-      address: p.address || '',
-      cellphone: p.cellphone || '',
-      title: p.title || '',
-      gender: p.gender || '',
-      employmentStatus: p.employmentStatus || '',
-      profilePicture: p.profilePicture || '',
-      createdAt: p.createdAt || user.createdAt || '',
+      idNumber: p.profile.idNumber || '',
+      address: p.profile.address || '',
+      cellphone: p.profile.cellphone || '',
+      title: p.profile.title || '',
+      gender: p.profile.gender || '',
+      employmentStatus: p.profile.employmentStatus || '',
+      profilePicture: p.profile.profilePicture || '',
+      createdAt: p.profile.createdAt || user.createdAt || '',
     };
   } catch (error) {
     console.error('Error fetching profile:', error);
