@@ -270,7 +270,7 @@ onMounted(() => {
 });
  </script>
 
-<style scoped lang="postcss">
+<style scoped>
 /* Shared UI tokens */
 .card-base {
   @apply bg-white/90 backdrop-blur-sm border border-slate-200 rounded-xl p-5 shadow-sm;
