@@ -1,320 +1,323 @@
 <template>
-  <div class="proof-of-payment-actions">
-    <!-- Transaction Card with Proof Actions -->
-    <div class="transaction-card bg-white rounded-lg shadow-md p-4 mb-4">
-      <div class="flex justify-between items-start">
-        <div class="flex-1">
-          <div class="flex items-center space-x-2 mb-2">
-            <h3 class="text-lg font-semibold text-gray-900">
-              {{ transaction.description }}
-            </h3>
-            <span 
-              class="px-2 py-1 rounded-full text-xs font-medium"
-              :class="getStatusBadgeColor(transaction.status)"
-            >
-              {{ transaction.status.toUpperCase() }}
-            </span>
-            <span 
-              class="px-2 py-1 rounded-full text-xs font-medium"
-              :class="proofBadge.color"
-            >
-              {{ proofBadge.text }}
-            </span>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-            <div>
-              <p><strong>Transaction ID:</strong> {{ transaction.transactionId }}</p>
-              <p><strong>Amount:</strong> {{ formatCurrency(transaction.amount) }}</p>
-              <p><strong>Date:</strong> {{ formatDate(transaction.createdAt) }}</p>
+  <div class="proof-of-payment">
+    <article class="card-base transaction-card">
+      <!-- Loading -->
+      <div v-if="loading" class="space-y-3">
+        <div class="skeleton h-24 rounded-lg"></div>
+        <div class="skeleton h-10 rounded-lg"></div>
+      </div>
+
+      <!-- Loaded -->
+      <template v-else-if="tx">
+        <div class="flex items-start justify-between gap-4">
+          <!-- Main info -->
+          <div class="flex-1 min-w-0">
+            <!-- Title + badges -->
+            <div class="flex flex-wrap items-center gap-2 mb-1">
+              <h3 class="title truncate">
+                {{ tx.description || tx.reference || 'Transaction' }}
+              </h3>
+
+              <span class="badge" :class="getStatusBadgeColor(tx.status)">
+                {{ (tx.status || '—').toUpperCase() }}
+              </span>
+
+              <span class="badge" :class="proofBadge.color">
+                {{ proofBadge.text }}
+              </span>
             </div>
-            <div>
-              <p><strong>From:</strong> {{ transaction.fromUserName }} ({{ transaction.fromAccountNumber }})</p>
-              <p v-if="transaction.toUserName">
-                <strong>To:</strong> {{ transaction.toUserName }} ({{ transaction.toAccountNumber }})
-              </p>
-              <p v-if="transaction.reference">
-                <strong>Reference:</strong> {{ transaction.reference }}
-              </p>
+
+            <!-- Quick facts -->
+            <div class="flex flex-wrap items-center gap-2 mb-3 text-xs">
+              <span class="chip chip-soft">{{ formattedDate }}</span>
+              <span class="chip font-semibold" :class="amountClass">{{ signedAmount }}</span>
+              <span class="chip chip-soft">ID: {{ tx.transactionId }}</span>
+            </div>
+
+            <!-- Details -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-700">
+              <div class="space-y-1">
+                <p><span class="label">From</span> {{ tx.fromUserName }} ({{ masked(tx.fromAccountNumber) }})</p>
+                <p v-if="tx.reference"><span class="label">Reference</span> {{ tx.reference }}</p>
+                <p><span class="label">Type</span> {{ tx.type || '—' }}</p>
+              </div>
+
+              <div class="space-y-1">
+                <p v-if="tx.toUserName"><span class="label">To</span> {{ tx.toUserName }} ({{ masked(tx.toAccountNumber) }})</p>
+                <p><span class="label">Proof</span> {{ tx.proofGenerated ? 'Generated' : 'Not generated' }}</p>
+                <p v-if="tx.proofGeneratedAt"><span class="label">Proof at</span> {{ formatDate(tx.proofGeneratedAt) }}</p>
+              </div>
             </div>
           </div>
+
+          <!-- Actions -->
+          <div class="flex flex-col gap-2 shrink-0">
+            <button
+              v-if="tx.status === 'completed'"
+              @click="generateProof"
+              :disabled="isGenerating"
+              class="btn btn-primary"
+            >
+              <span v-if="isGenerating" class="inline-flex items-center gap-2">
+                <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                </svg>
+                Generating...
+              </span>
+              <span v-else>{{ tx.proofGenerated ? 'Regenerate' : 'Generate' }} Proof</span>
+            </button>
+
+            <button
+              v-if="tx.proofGenerated"
+              @click="downloadProof"
+              :disabled="isDownloading"
+              class="btn btn-secondary"
+            >
+              <span v-if="isDownloading" class="inline-flex items-center gap-2">
+                <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                </svg>
+                Downloading...
+              </span>
+              <span v-else>Download PDF</span>
+            </button>
+
+            <button v-if="tx.proofGenerated" @click="viewProof" class="btn btn-ghost">View PDF</button>
+
+            <button @click="verifyTransaction" :disabled="isVerifying" class="btn btn-ghost">
+              <span v-if="isVerifying" class="inline-flex items-center gap-2">
+                <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                </svg>
+                Verifying...
+              </span>
+              <span v-else>Verify</span>
+            </button>
+          </div>
         </div>
-        
-        <!-- Action Buttons -->
-        <div class="flex flex-col space-y-2 ml-4">
-          <button
-            v-if="transaction.status === 'completed'"
-            @click="generateProof"
-            :disabled="isGenerating"
-            class="btn btn-primary text-sm"
-          >
-            <span v-if="isGenerating">Generating...</span>
-            <span v-else>{{ transaction.proofGenerated ? 'Regenerate' : 'Generate' }} Proof</span>
-          </button>
-          
-          <button
-            v-if="transaction.proofGenerated"
-            @click="downloadProof"
-            :disabled="isDownloading"
-            class="btn btn-secondary text-sm"
-          >
-            <span v-if="isDownloading">Downloading...</span>
-            <span v-else>Download PDF</span>
-          </button>
-          
-          <button
-            v-if="transaction.proofGenerated"
-            @click="viewProof"
-            class="btn btn-outline text-sm"
-          >
-            View PDF
-          </button>
-          
-          <button
-            @click="verifyTransaction"
-            :disabled="isVerifying"
-            class="btn btn-outline text-sm"
-          >
-            <span v-if="isVerifying">Verifying...</span>
-            <span v-else>Verify</span>
-          </button>
+
+        <!-- Proof Generation Status -->
+        <div v-if="proofStatus" class="alert mt-4" :class="proofStatus.type === 'success' ? 'alert-success' : 'alert-error'" role="status">
+          <p class="text-sm">{{ proofStatus.message }}</p>
         </div>
-      </div>
-      
-      <!-- Proof Generation Status -->
-      <div v-if="proofStatus" class="mt-4 p-3 rounded-lg" :class="proofStatus.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'">
-        <p class="text-sm">{{ proofStatus.message }}</p>
-      </div>
-      
-      <!-- Verification Result -->
-      <div v-if="verificationResult" class="mt-4 p-3 rounded-lg bg-blue-50 text-blue-800">
-        <h4 class="font-medium mb-2">Transaction Verification</h4>
-        <div class="text-sm space-y-1">
-          <p><strong>Valid:</strong> {{ verificationResult.isValid ? 'Yes' : 'No' }}</p>
-          <p><strong>Verified At:</strong> {{ formatDate(verificationResult.verifiedAt) }}</p>
-          <p v-if="verificationResult.message">{{ verificationResult.message }}</p>
+
+        <!-- Verification Result -->
+        <div v-if="verificationResult" class="alert alert-info mt-3">
+          <h4 class="font-semibold mb-1">Transaction Verification</h4>
+          <div class="text-sm space-y-1">
+            <p><span class="label">Valid</span> {{ verificationResult.isValid ? 'Yes' : 'No' }}</p>
+            <p><span class="label">Verified At</span> {{ formatDate(verificationResult.verifiedAt) }}</p>
+            <p v-if="verificationResult.message">{{ verificationResult.message }}</p>
+          </div>
         </div>
-      </div>
-    </div>
+      </template>
+
+      <!-- Missing -->
+      <p v-else class="alert-error">Transaction not found.</p>
+    </article>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import axios from 'axios';
 import { useToast } from 'vue-toastification';
 import NotificationService from '../services/notificationService';
 
+// Accept either a full transaction or a transactionId prop (router passes transactionId with props: true)
 const props = defineProps({
-  transaction: {
-    type: Object,
-    required: true
-  }
+  transaction: { type: Object, default: null },
+  transactionId: { type: [String, Number], default: '' }
 });
 
+const route = useRoute();
+const router = useRouter();
 const toast = useToast();
 
-// Reactive state
+const tx = ref(props.transaction);
+const loading = ref(false);
+const error = ref('');
+
+watch(() => props.transaction, (val) => { if (val) tx.value = val; });
+
+const getRouteId = () => String(route.params.transactionId || props.transactionId || '');
+
+// Hydrate quickly from session if present
+const hydrateFromSession = (id) => {
+  try {
+    const cached = sessionStorage.getItem('yb:selected-tx');
+    if (!cached) return false;
+    const parsed = JSON.parse(cached);
+    const cachedId = String(parsed.transactionId || parsed._id || '');
+    if (cachedId === String(id)) {
+      tx.value = parsed;
+      return true;
+    }
+  } catch {}
+  return false;
+};
+
+const fetchById = async (id) => {
+  if (!id) return;
+  try {
+    loading.value = true;
+    error.value = '';
+    const token = localStorage.getItem('token');
+    const { data } = await axios.get(`/api/transactions/${id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    tx.value = data.transaction || data || null;
+  } catch (e) {
+    console.error('Fetch transaction error:', e);
+    error.value = e.response?.data?.message || e.message || 'Failed to load transaction.';
+    if (e.response?.status === 401) router.push('/login');
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(async () => {
+  if (tx.value) return;
+  const id = getRouteId();
+  if (!hydrateFromSession(id)) await fetchById(id);
+});
+
+// UI computed
+const proofBadge = computed(() => NotificationService.getProofStatusBadge(tx.value?.proofGenerated));
+const signedAmount = computed(() => {
+  const amt = Number(tx.value?.amount || 0); const sign = amt < 0 ? '-' : '+'; return `${sign}${formatCurrency(Math.abs(amt))}`;
+});
+const amountClass = computed(() => Number(tx.value?.amount || 0) < 0 ? 'text-rose-700 border-rose-200 bg-rose-50' : 'text-emerald-700 border-emerald-200 bg-emerald-50');
+const formattedDate = computed(() => formatDate(tx.value?.createdAt));
+
+// Helpers
+const masked = (v) => {
+  const s = String(v || '');
+  return s ? `•••• ${s.slice(-4)}` : '—';
+};
+const formatCurrency = (amount) => {
+  try { return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(Number(amount || 0)); }
+  catch { const n = Number(amount || 0); return `R ${n.toFixed(2)}`; }
+};
+const formatDate = (dateString) => {
+  const d = new Date(dateString); if (isNaN(d.getTime())) return '';
+  return d.toLocaleString('en-ZA', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+};
+const getStatusBadgeColor = (status) => NotificationService.getStatusBadgeColor(status);
+
+// Actions
 const isGenerating = ref(false);
 const isDownloading = ref(false);
 const isVerifying = ref(false);
 const proofStatus = ref(null);
 const verificationResult = ref(null);
 
-// Computed properties
-const proofBadge = computed(() => {
-  return NotificationService.getProofStatusBadge(props.transaction.proofGenerated);
-});
+const ensureTx = () => { if (!tx.value) throw new Error('Transaction not loaded yet.'); return tx.value; };
 
-// Methods
 const generateProof = async () => {
   try {
-    isGenerating.value = true;
-    proofStatus.value = null;
-    
-    const result = await NotificationService.generateProofOfPayment(props.transaction.transactionId);
-    
-    // Update transaction proof status
-    props.transaction.proofGenerated = true;
-    props.transaction.proofGeneratedAt = new Date().toISOString();
-    
-    proofStatus.value = {
-      type: 'success',
-      message: result.message || 'Proof of payment generated successfully!'
-    };
-    
+    isGenerating.value = true; proofStatus.value = null;
+    const id = ensureTx().transactionId;
+    const result = await NotificationService.generateProofOfPayment(id);
+    tx.value.proofGenerated = true;
+    tx.value.proofGeneratedAt = new Date().toISOString();
+    proofStatus.value = { type: 'success', message: result.message || 'Proof of payment generated successfully!' };
     toast.success('Proof of payment generated successfully!');
   } catch (error) {
     console.error('Error generating proof:', error);
-    
-    let errorMessage = 'Failed to generate proof of payment';
-    if (error.response?.status === 404) {
-      errorMessage = 'Proof of payment endpoint not implemented. Please implement /api/proof-of-payment/generate/{transactionId} in your backend.';
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-    
-    proofStatus.value = {
-      type: 'error',
-      message: errorMessage
-    };
-    toast.error(errorMessage);
-  } finally {
-    isGenerating.value = false;
-  }
+    let message = 'Failed to generate proof of payment';
+    if (error.response?.status === 404) message = 'Proof endpoint missing: /api/proof-of-payment/generate/{transactionId}';
+    else if (error.message) message = error.message;
+    proofStatus.value = { type: 'error', message }; toast.error(message);
+  } finally { isGenerating.value = false; }
 };
 
 const downloadProof = async () => {
   try {
     isDownloading.value = true;
-    
-    await NotificationService.downloadProofOfPayment(props.transaction.transactionId);
+    await NotificationService.downloadProofOfPayment(ensureTx().transactionId);
     toast.success('PDF download started!');
   } catch (error) {
     console.error('Error downloading proof:', error);
-    
-    let errorMessage = 'Failed to download proof of payment';
-    if (error.response?.status === 404) {
-      errorMessage = 'Download endpoint not implemented. Please implement /api/proof-of-payment/download/{transactionId} in your backend.';
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-    
-    toast.error(errorMessage);
-  } finally {
-    isDownloading.value = false;
-  }
+    let message = 'Failed to download proof of payment';
+    if (error.response?.status === 404) message = 'Download endpoint missing: /api/proof-of-payment/download/{transactionId}';
+    else if (error.message) message = error.message;
+    toast.error(message);
+  } finally { isDownloading.value = false; }
 };
 
 const viewProof = async () => {
   try {
-    await NotificationService.viewProofOfPayment(props.transaction.transactionId);
+    await NotificationService.viewProofOfPayment(ensureTx().transactionId);
     toast.info('PDF opened in new tab');
   } catch (error) {
     console.error('Error viewing proof:', error);
-    
-    let errorMessage = 'Failed to view proof of payment';
-    if (error.response?.status === 404) {
-      errorMessage = 'View endpoint not implemented. Please implement /api/proof-of-payment/view/{transactionId} in your backend.';
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-    
-    toast.error(errorMessage);
+    let message = 'Failed to view proof of payment';
+    if (error.response?.status === 404) message = 'View endpoint missing: /api/proof-of-payment/view/{transactionId}';
+    else if (error.message) message = error.message;
+    toast.error(message);
   }
 };
 
 const verifyTransaction = async () => {
   try {
-    isVerifying.value = true;
-    verificationResult.value = null;
-    
-    const result = await NotificationService.verifyTransaction(props.transaction.transactionId);
-    verificationResult.value = result;
-    
-    toast.success('Transaction verified successfully!');
+    isVerifying.value = true; verificationResult.value = null;
+    const result = await NotificationService.verifyTransaction(ensureTx().transactionId);
+    verificationResult.value = result; toast.success('Transaction verified successfully!');
   } catch (error) {
     console.error('Error verifying transaction:', error);
-    
-    let errorMessage = 'Failed to verify transaction';
-    if (error.response?.status === 404) {
-      errorMessage = 'Verification endpoint not implemented. Please implement /api/proof-of-payment/verify/{transactionId} in your backend.';
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-    
-    verificationResult.value = {
-      isValid: false,
-      message: errorMessage,
-      verifiedAt: new Date().toISOString()
-    };
-    toast.error(errorMessage);
-  } finally {
-    isVerifying.value = false;
-  }
-};
-
-const getStatusBadgeColor = (status) => {
-  return NotificationService.getStatusBadgeColor(status);
-};
-
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'ZAR'
-  }).format(amount);
-};
-
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+    let message = 'Failed to verify transaction';
+    if (error.response?.status === 404) message = 'Verification endpoint missing: /api/proof-of-payment/verify/{transactionId}';
+    else if (error.message) message = error.message;
+    verificationResult.value = { isValid: false, message, verifiedAt: new Date().toISOString() };
+    toast.error(message);
+  } finally { isVerifying.value = false; }
 };
 </script>
 
 <style scoped>
-.transaction-card {
-  border: 1px solid #e5e7eb;
-  transition: all 0.2s ease-in-out;
-}
+/* Surface + tokens aligned with the app */
+.card-base { @apply bg-white/90 backdrop-blur-sm border border-slate-200 rounded-xl p-5 shadow-sm; }
 
-.transaction-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
+/* Title and chips/badges */
+.title { @apply text-lg font-semibold text-slate-900; }
+.badge { @apply px-2 py-1 rounded-full text-xs font-medium border; }
+.chip { @apply px-2.5 py-1 rounded-full text-xs border border-slate-200 bg-white text-slate-700; }
+.chip-soft { @apply bg-teal-50 text-teal-700 border-teal-200; }
+.label { @apply font-medium text-slate-500 mr-1; }
 
-.btn {
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  transition: colors 0.2s ease-in-out;
-  min-width: 100px;
-  border: none;
-  cursor: pointer;
-}
+/* Buttons */
+.btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition border border-transparent; min-width: 120px; }
+.btn-primary { @apply bg-deep-teal text-white hover:opacity-95 disabled:opacity-70 disabled:cursor-not-allowed; }
+.btn-secondary { @apply bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-200; }
+.btn-ghost { @apply bg-white text-slate-700 border border-slate-200 hover:bg-slate-50; }
 
-.btn-primary {
-  background-color: #2563eb;
-  color: white;
-}
+/* Alerts */
+.alert { @apply rounded-lg px-3 py-2 border text-sm; }
+.alert-success { @apply bg-emerald-50 text-emerald-800 border-emerald-200; }
+.alert-error { @apply bg-rose-50 text-rose-800 border-rose-200; }
+.alert-info { @apply bg-indigo-50 text-indigo-800 border-indigo-200; }
 
-.btn-primary:hover:not(:disabled) {
-  background-color: #1d4ed8;
-}
+/* Card hover */
+.transaction-card { transition: box-shadow .18s ease, transform .18s ease; }
+.transaction-card:hover { box-shadow: 0 10px 22px -16px rgba(2,6,23,0.35); }
 
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+/* Skeleton */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 37%, #f1f5f9 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border: 1px solid rgba(226,232,240,0.8);
 }
+@keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
 
-.btn-secondary {
-  background-color: #4b5563;
-  color: white;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background-color: #374151;
-}
-
-.btn-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-outline {
-  border: 1px solid #d1d5db;
-  color: #374151;
-  background-color: white;
-}
-
-.btn-outline:hover:not(:disabled) {
-  background-color: #f9fafb;
-}
-
-.btn-outline:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+/* Spinner */
+.animate-spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
 </style>

@@ -212,32 +212,24 @@ const fetchProfile = async () => {
   try {
     loading.value = true;
     const token = localStorage.getItem('token');
-    const response = await axios.get('/api/profile', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    profile.value = {
-      address: response.data.address || '',
-      cellphone: response.data.cellphone || '',
-      employmentStatus: response.data.employmentStatus || '',
-    const response = await axios.get('/api/users/profile', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
-    const user = response.data.userId || response.data || {};
+    // Fetch user basic info
+    const userRes = await axios.get('/api/users/profile', authHeader);
+    const user = userRes.data.userId || userRes.data || {};
     name.value = user.name || '';
     email.value = user.email || '';
 
+    // Fetch profile details
+    const profileRes = await axios.get('/api/profile', authHeader);
     profile.value = {
-      address: user.address || '',
-      cellphone: user.cellphone || '',
-      employmentStatus: user.employmentStatus || '',
+      address: profileRes.data.address || user.address || '',
+      cellphone: profileRes.data.cellphone || user.cellphone || '',
+      employmentStatus: profileRes.data.employmentStatus || user.employmentStatus || '',
     };
   } catch (error) {
-    console.error('Error fetching profile:', error.message);
+    console.error('Error fetching profile:', error.response?.data?.message || error.message);
     alert('Failed to load profile. Please try again.');
-    if (error.response?.status === 401) {
-      router.push('/login');
-    }
     if (error.response?.status === 401) router.push('/login');
   } finally {
     loading.value = false;
@@ -276,9 +268,9 @@ const goBack = () => {
 onMounted(() => {
   fetchProfile();
 });
-</script>
+ </script>
 
-<style scoped>
+<style scoped lang="postcss">
 /* Shared UI tokens */
 .card-base {
   @apply bg-white/90 backdrop-blur-sm border border-slate-200 rounded-xl p-5 shadow-sm;
