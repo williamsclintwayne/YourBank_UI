@@ -415,12 +415,7 @@ const emailBankStatement = async () => {
     
     // Show success toast
     toast.success('Bank statement emailed successfully!');
-    await axios.post(
-      `/api/accounts/${accountId}/statement/email`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    alert('Bank statement emailed successfully.');
+    // Removed redundant axios.post and alert. Only NotificationService and toast are used.
   } catch (error) {
     console.error('Error emailing bank statement:', error);
     const message = error.message || 'Failed to email bank statement';
