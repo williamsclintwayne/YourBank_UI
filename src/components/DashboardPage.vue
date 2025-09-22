@@ -341,7 +341,6 @@ onMounted(() => {
 }
 
 .burger-button {
-  @apply text-2xl text-deep-teal bg-transparent border-none cursor-pointer p-2 transition-transform duration-200 hover:scale-110;
   @apply text-2xl text-deep-teal bg-white rounded-full shadow-sm border border-slate-200 cursor-pointer p-2 transition-transform duration-200 hover:scale-105 hover:shadow;
 }
 
