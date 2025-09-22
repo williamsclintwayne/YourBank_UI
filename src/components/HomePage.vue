@@ -149,6 +149,11 @@ const navigateToGetStarted = () => {
 const navigateToLogin = () => {
   router.push('/login');
 };
+
+// Added function to navigate to Learn More page
+const navigateToLearnMore = () => {
+  router.push('/learn-more');
+};
 </script>
 
 <style scoped>

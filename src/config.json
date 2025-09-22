@@ -1,0 +1,8 @@
+{
+  "apiBaseUrl": "http://localhost:5000",
+  "notificationServiceUrl": "http://localhost:5000",
+  "emailServiceUrl": "http://localhost:5000",
+  "smsServiceUrl": "http://localhost:5000",
+  "developmentMode": false,
+  "useMockData": false
+}

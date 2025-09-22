@@ -4,10 +4,14 @@ import Payments from '../components/Payments.vue';
 import Transactions from '../components/Transactions.vue';
 import LoginPage from '../components/LoginPage.vue';
 import HomePage from '../components/HomePage.vue';
-import GetStartedPage from '../components/GetStartedPage.vue';
-import UpdateProfile from '../pages/UpdateProfile.vue';
-import OpenAccountPage from '../components/OpenAccountPage.vue'; // Import OpenAccountPage
-import LearnMorePage from '../components/LearnMorePage.vue'; // Import LearnMorePage
+import GetStartedPage from '../pages/GetStartedPage.vue'; // Updated path
+import UpdateProfile from '../pages/UpdateProfile.vue'; // Path is correct, but good to verify
+import OpenAccountPage from '../components/OpenAccountPage.vue';
+import LearnMorePage from '../components/LearnMorePage.vue';
+import ViewProfile from '../pages/ViewProfile.vue'; // Path is correct, but good to verify
+import NotificationSettingsPage from '../pages/NotificationSettingsPage.vue';
+import TransactionHistoryPage from '../pages/TransactionHistoryPage.vue';
+import ProofOfPayment from '../components/ProofOfPayment.vue';
 
 const routes = [
   {
@@ -42,12 +46,12 @@ const routes = [
   {
     path: '/get-started',
     name: 'GetStarted',
-    component: GetStartedPage,
+    component: GetStartedPage, // No change needed here, just the import path
   },
   {
     path: '/update-profile',
-    name: 'UpdateProfile', // Add name for consistency
-    component: UpdateProfile,
+    name: 'UpdateProfile',
+    component: UpdateProfile, // No change needed here, just the import path
      meta: { requiresAuth: true }
    },
    {
@@ -61,6 +65,58 @@ const routes = [
     name: 'LearnMore',
     component: LearnMorePage,
   },
+  {
+    path: '/view-profile',
+    name: 'ViewProfile',
+    component: ViewProfile, // No change needed here, just the import path
+     meta: { requiresAuth: true }
+   },
+   {
+    path: '/notification-settings',
+    name: 'NotificationSettings',
+    component: NotificationSettingsPage,
+    meta: { requiresAuth: true }
+   },
+   {
+    path: '/transaction-history',
+    name: 'TransactionHistory',
+    component: TransactionHistoryPage,
+    meta: { requiresAuth: true }
+   },
+   {
+    path: '/proof-of-payment/:transactionId',
+    name: 'ProofOfPayment',
+    component: ProofOfPayment,
+    props: true,
+    meta: { requiresAuth: true }
+   },
+   {
+    path: '/verify-transaction/:transactionId',
+    name: 'VerifyTransaction',
+    component: ProofOfPayment,
+    props: route => ({ 
+      transaction: { transactionId: route.params.transactionId },
+      verifyMode: true 
+    }),
+    meta: { requiresAuth: false } // Public route for QR code verification
+   },
+   {
+    path: '/proof-of-payment/view/:transactionId',
+    name: 'ViewProofPDF',
+    component: () => import('../components/ProofOfPayment.vue'),
+    props: route => ({ 
+      transaction: { transactionId: route.params.transactionId },
+      viewMode: true 
+    }),
+    meta: { requiresAuth: true }
+   },
+   {
+    path: '/bulk-proof-operations',
+    name: 'BulkProofOperations',
+    component: TransactionHistoryPage,
+    props: { bulkMode: true },
+    meta: { requiresAuth: true }
+   },
 ];
 
 const router = createRouter({

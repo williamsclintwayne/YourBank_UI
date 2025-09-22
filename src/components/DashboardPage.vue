@@ -1,168 +1,141 @@
 <template>
-  <div class="relative min-h-screen bg-slate-50">
-    <!-- Decorative background shapes -->
-    <div class="pointer-events-none absolute inset-0 overflow-hidden">
-      <div class="shape shape-1"></div>
-      <div class="shape shape-2"></div>
-    </div>
+  <div class="relative z-10 dashboard-container p-6 md:p-8 mx-auto max-w-7xl">
+    <!-- Header / Hero -->
+    <header class="dashboard-header">
+      <div class="space-y-1">
+        <h1 class="dashboard-title">
+          Dashboard
+        </h1>
+        <p class="dashboard-welcome">
+          Welcome back
+          <span class="highlight">{{ userName || 'User' }}</span>!
+        </p>
+      </div>
 
-    <div class="relative z-10 dashboard-container p-6 md:p-8 mx-auto max-w-7xl">
-      <!-- Header / Hero -->
-      <header class="dashboard-header">
-        <div class="space-y-1">
-          <h1 class="dashboard-title">
-            Dashboard
-          </h1>
-          <p class="dashboard-welcome">
-            Welcome back
-            <span class="highlight">{{ userName || 'User' }}</span>!
-          </p>
-        </div>
+      <div class="flex items-center gap-3">
+        <button class="btn btn-ghost hidden md:inline-flex" @click="showModal = true">
+          <span class="i-plus">＋</span>
+          Open account
+        </button>
+        <button class="btn btn-ghost hidden md:inline-flex" @click="navigateToPayments">
+          <span class="i-send">➤</span>
+          Pay someone
+        </button>
+        <button class="burger-button" @click="toggleMenu" aria-label="Open menu">☰</button>
+      </div>
+    </header>
 
-        <div class="flex items-center gap-3">
-          <button class="btn btn-ghost hidden md:inline-flex" @click="showModal = true">
-            <span class="i-plus">＋</span>
-            Open account
+    <!-- Quick actions (mobile-first) -->
+    <section class="mb-8">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <button class="quick-card" @click="showModal = true">
+          <div class="quick-icon bg-teal-500/10 text-teal-600">＋</div>
+          <span class="quick-text">Open Account</span>
+        </button>
+        <button class="quick-card" @click="navigateToPayments">
+          <div class="quick-icon bg-indigo-500/10 text-indigo-600">⇄</div>
+          <span class="quick-text">Pay Someone</span>
+        </button>
+        <button class="quick-card" @click="navigateToProfileUpdate">
+          <div class="quick-icon bg-amber-500/10 text-amber-600">⚙</div>
+          <span class="quick-text">Update Profile</span>
+        </button>
+        <button class="quick-card" @click="fetchAccounts">
+          <div class="quick-icon bg-rose-500/10 text-rose-600">⟳</div>
+          <span class="quick-text">Refresh</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Accounts -->
+    <section class="accounts-section">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="section-title">Your Accounts</h2>
+
+        <div class="filter-row">
+          <button v-for="f in filters" :key="f" class="chip" :class="{ 'chip-active': activeFilter === f }"
+            @click="activeFilter = f">
+            {{ f }}
           </button>
-          <button class="btn btn-ghost hidden md:inline-flex" @click="navigateToPayments">
-            <span class="i-send">➤</span>
-            Pay someone
-          </button>
-          <button class="burger-button" @click="toggleMenu" aria-label="Open menu">☰</button>
-        </div>
-      </header>
-
-      <!-- Quick actions (mobile-first) -->
-      <section class="mb-8">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <button class="quick-card" @click="showModal = true">
-            <div class="quick-icon bg-teal-500/10 text-teal-600">＋</div>
-            <span class="quick-text">Open Account</span>
-          </button>
-          <button class="quick-card" @click="navigateToPayments">
-            <div class="quick-icon bg-indigo-500/10 text-indigo-600">⇄</div>
-            <span class="quick-text">Pay Someone</span>
-          </button>
-          <button class="quick-card" @click="navigateToProfileUpdate">
-            <div class="quick-icon bg-amber-500/10 text-amber-600">⚙</div>
-            <span class="quick-text">Update Profile</span>
-          </button>
-          <button class="quick-card" @click="fetchAccounts">
-            <div class="quick-icon bg-rose-500/10 text-rose-600">⟳</div>
-            <span class="quick-text">Refresh</span>
-          </button>
-        </div>
-      </section>
-
-      <!-- Accounts -->
-      <section class="accounts-section">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="section-title">Your Accounts</h2>
-
-          <div class="filter-row">
-            <button
-              v-for="f in filters"
-              :key="f"
-              class="chip"
-              :class="{ 'chip-active': activeFilter === f }"
-              @click="activeFilter = f"
-            >
-              {{ f }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Loading skeleton -->
-        <div v-if="loading" class="accounts-grid">
-          <div v-for="n in 3" :key="n" class="card-base skeleton h-36"></div>
-        </div>
-
-        <!-- Accounts grid -->
-        <div v-else-if="displayAccounts && displayAccounts.length" class="accounts-grid">
-          <div
-            v-for="account in displayAccounts"
-            :key="account._id"
-            class="account-card card-base gradient-card"
-            @click="navigateToAccount(account._id)"
-          >
-            <div class="flex items-start justify-between">
-              <h3 class="account-name">{{ account.name }}</h3>
-              <span class="chip chip-soft">{{ account.accountType }}</span>
-            </div>
-
-            <div class="mt-2">
-              <p class="label-muted">Account</p>
-              <p class="account-detail font-medium">
-                {{ maskAccountNumber(account.accountNumber) }}
-              </p>
-            </div>
-
-            <div class="mt-3 flex items-end justify-between">
-              <div>
-                <p class="label-muted">Balance</p>
-                <p class="balance-text">
-                  {{ formatCurrency(account.balance) }}
-                </p>
-              </div>
-
-              <span class="view-link">View</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Empty state -->
-        <div v-else class="empty-state card-base">
-          <div class="empty-illustration">💳</div>
-          <h3 class="text-lg font-semibold text-slate-800">No accounts yet</h3>
-          <p class="text-slate-500 text-center">
-            Open an account to get started with YourBank.
-          </p>
-          <button class="btn btn-primary mt-4" @click="showModal = true">
-            Open a New Account
-          </button>
-        </div>
-      </section>
-
-      <!-- Modal -->
-      <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-        <div class="modal-content card-base">
-          <h2 class="modal-title">Open a New Account</h2>
-          <form @submit.prevent="openAccount">
-            <div class="form-group">
-              <label for="accountName" class="label">Account Name</label>
-              <input
-                v-model="accountForm.name"
-                id="accountName"
-                type="text"
-                class="input-field"
-                placeholder="e.g. Holiday Savings"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="accountType" class="label">Account Type</label>
-              <select
-                v-model="accountForm.accountType"
-                id="accountType"
-                class="input-field"
-              >
-                <option value="Savings">Savings</option>
-                <option value="Fixed Savings">Fixed Savings</option>
-              </select>
-            </div>
-
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">Create Account</button>
-              <button type="button" class="btn btn-secondary" @click="showModal = false">Cancel</button>
-            </div>
-          </form>
         </div>
       </div>
 
-      <!-- Side Menu -->
-      <SideMenu v-if="isMenuOpen" @close="toggleMenu" @navigate="handleNavigation" />
+      <!-- Loading skeleton -->
+      <div v-if="loading" class="accounts-grid">
+        <div v-for="n in 3" :key="n" class="card-base skeleton h-36"></div>
+      </div>
+
+      <!-- Accounts grid -->
+      <div v-else-if="displayAccounts && displayAccounts.length" class="accounts-grid">
+        <div v-for="account in displayAccounts" :key="account._id" class="account-card card-base gradient-card"
+          @click="navigateToAccount(account._id)">
+          <div class="flex items-start justify-between">
+            <h3 class="account-name">{{ account.name }}</h3>
+            <span class="chip chip-soft">{{ account.accountType }}</span>
+          </div>
+
+          <div class="mt-2">
+            <p class="label-muted">Account</p>
+            <p class="account-detail font-medium">
+              {{ maskAccountNumber(account.accountNumber) }}
+            </p>
+          </div>
+
+          <div class="mt-3 flex items-end justify-between">
+            <div>
+              <p class="label-muted">Balance</p>
+              <p class="balance-text">
+                {{ formatCurrency(account.balance) }}
+              </p>
+            </div>
+
+            <span class="view-link">View</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div v-else class="empty-state card-base">
+        <div class="empty-illustration">💳</div>
+        <h3 class="text-lg font-semibold text-slate-800">No accounts yet</h3>
+        <p class="text-slate-500 text-center">
+          Open an account to get started with YourBank.
+        </p>
+        <button class="btn btn-primary mt-4" @click="showModal = true">
+          Open a New Account
+        </button>
+      </div>
+    </section>
+
+    <!-- Modal -->
+    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+      <div class="modal-content card-base">
+        <h2 class="modal-title">Open a New Account</h2>
+        <form @submit.prevent="openAccount">
+          <div class="form-group">
+            <label for="accountName" class="label">Account Name</label>
+            <input v-model="accountForm.name" id="accountName" type="text" class="input-field"
+              placeholder="e.g. Holiday Savings" required />
+          </div>
+
+          <div class="form-group">
+            <label for="accountType" class="label">Account Type</label>
+            <select v-model="accountForm.accountType" id="accountType" class="input-field">
+              <option value="Savings">Savings</option>
+              <option value="Fixed Savings">Fixed Savings</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Create Account</button>
+            <button type="button" class="btn btn-secondary" @click="showModal = false">Cancel</button>
+          </div>
+        </form>
+      </div>
     </div>
+
+    <!-- Side Menu -->
+    <SideMenu v-if="isMenuOpen" @close="toggleMenu" @navigate="handleNavigation" />
   </div>
 </template>
 
@@ -171,11 +144,14 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import SideMenu from './SideMenu.vue';
+import NotificationBell from './notifications/NotificationBell.vue';
+import NotificationList from './notifications/NotificationList.vue';
 
 const accounts = ref([]);
 const loading = ref(false);
 const showModal = ref(false);
 const isMenuOpen = ref(false);
+const showNotifications = ref(false);
 
 const accountForm = ref({
   name: '',
@@ -298,8 +274,20 @@ const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
 };
 
+const toggleNotifications = () => {
+  showNotifications.value = !showNotifications.value;
+};
+
 const navigateToProfileUpdate = () => {
   router.push('/update-profile');
+};
+
+const navigateToProfile = () => {
+  router.push('/view-profile'); // Navigate to the Profile page
+};
+
+const navigateToNotificationSettings = () => {
+  router.push('/notification-settings'); // Navigate to the Notification Settings page
 };
 
 const handleNavigation = (action) => {
@@ -309,8 +297,14 @@ const handleNavigation = (action) => {
     showModal.value = true;
   } else if (action === 'paySomeone') {
     navigateToPayments();
+  } else if (action === 'transactionHistory') {
+    router.push('/transaction-history');
   } else if (action === 'updateProfile') {
     navigateToProfileUpdate();
+  } else if (action === 'viewProfile') {
+    navigateToProfile();
+  } else if (action === 'notificationSettings') {
+    navigateToNotificationSettings();
   }
 };
 
@@ -334,6 +328,12 @@ onMounted(() => {
   position: relative;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .dashboard-title {
   /* keeps your custom color tokens */
   @apply text-3xl md:text-4xl font-heading font-bold text-deep-teal;
@@ -341,8 +341,7 @@ onMounted(() => {
 }
 
 .burger-button {
-  @apply text-2xl text-deep-teal bg-white rounded-full shadow-sm border border-slate-200 cursor-pointer p-2
-    transition-transform duration-200 hover:scale-105 hover:shadow;
+  @apply text-2xl text-deep-teal bg-white rounded-full shadow-sm border border-slate-200 cursor-pointer p-2 transition-transform duration-200 hover:scale-105 hover:shadow;
 }
 
 /* Typographic helpers */
@@ -378,12 +377,10 @@ onMounted(() => {
   position: absolute;
   inset: -2px;
   z-index: -1;
-  background: conic-gradient(
-    from 180deg,
-    rgba(13, 148, 136, 0.2),
-    rgba(59, 130, 246, 0.2),
-    rgba(13, 148, 136, 0.2)
-  );
+  background: conic-gradient(from 180deg,
+      rgba(13, 148, 136, 0.2),
+      rgba(59, 130, 246, 0.2),
+      rgba(13, 148, 136, 0.2));
   filter: blur(12px);
   opacity: 0;
   transition: opacity 200ms ease;
@@ -394,6 +391,7 @@ onMounted(() => {
   transform: translateY(-2px);
   box-shadow: 0 10px 20px -12px rgba(2, 6, 23, 0.2);
 }
+
 .gradient-card:hover::before {
   opacity: 1;
 }
@@ -478,8 +476,7 @@ onMounted(() => {
 
 /* Inputs */
 .input-field {
-  @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 placeholder-slate-400
-    focus:outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-400;
+  @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-400;
 }
 
 .form-group {
@@ -512,9 +509,15 @@ onMounted(() => {
   background-size: 400% 100%;
   animation: shimmer 1.4s ease infinite;
 }
+
 @keyframes shimmer {
-  0% { background-position: 100% 0; }
-  100% { background-position: 0 0; }
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: 0 0;
+  }
 }
 
 /* Decorative background shapes */
@@ -525,6 +528,7 @@ onMounted(() => {
   opacity: 0.4;
   transform: translateZ(0);
 }
+
 .shape-1 {
   width: 420px;
   height: 420px;
@@ -532,6 +536,7 @@ onMounted(() => {
   top: -120px;
   left: -120px;
 }
+
 .shape-2 {
   width: 520px;
   height: 520px;
